@@ -1,0 +1,53 @@
+import numpy as np
+from scipy.interpolate import approximate_taylor_polynomial
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+
+f = lambda t, s: -2 * s + 2 - np.exp(-4 * t) # function
+h = .1 # step size
+t = np.arange(0, .5 + h, h) # span
+s0 = 1 # initial condition
+
+# taylor's
+
+degree = 6
+solved_f = lambda t: .5 * (np.exp(-4 * t) - np.exp(-2 * t) + 2)
+taylor_aprox = approximate_taylor_polynomial(solved_f, 0, degree, 1, order=degree+2)(t)
+
+# euler's
+
+euler_solution = np.zeros(len(t))
+euler_solution[0] = s0
+
+for i in range(0, len(t) - 1):
+    euler_solution[i + 1] = euler_solution[i] + h * f(t[i], euler_solution[i])
+
+# heun's
+
+huen_solution = np.zeros(t.size)
+huen_solution[0] = s0
+
+for i in range(1, t.size):
+    y_intermediate = huen_solution[i-1] + h*f(t[i-1],huen_solution[i-1])
+
+    huen_solution[i] = huen_solution[i-1] + (h/2.0)*(f(t[i-1],huen_solution[i-1]) + f(t[i],y_intermediate))
+
+solved_f = lambda t: .5 * (np.exp(-4 * t) - np.exp(-2 * t) + 2)
+continuum = np.linspace(0, .5, 100)
+actual_solution = [solved_f(i) for i in continuum]
+
+sns.set_style('darkgrid')
+plt.scatter(t, taylor_aprox, c='b')
+plt.plot(t, taylor_aprox, '--', c='y', label='Taylor\'s Method')
+plt.scatter(t, euler_solution, c='b')
+plt.plot(t, euler_solution, '--', c='b', label='Euler Solution')
+plt.scatter(t, huen_solution, c='b')
+plt.plot(t, huen_solution, '--', c='r', label='Heun\'s Method')
+plt.plot(continuum, actual_solution, c='g', label='Actual Solution')
+plt.legend()
+plt.show()
+
+print(f'Taylor\'s approximation: {taylor_aprox}')
+print(f'Euler\'s solution: {euler_solution}')
+print(f'Heun\'s solution: {huen_solution}')
